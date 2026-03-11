@@ -1,23 +1,23 @@
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
 
-ENTITY full_adder IS
-    PORT(
-        A    : IN  STD_LOGIC;
-        B    : IN  STD_LOGIC;
-        Cin  : IN  STD_LOGIC;
-        Sum  : OUT STD_LOGIC;
-        Cout : OUT STD_LOGIC
+entity full_adder is
+    Port (
+        A    : in  STD_LOGIC;
+        B    : in  STD_LOGIC;
+        Cin  : in  STD_LOGIC;
+        S    : out STD_LOGIC;
+        Cout : out STD_LOGIC
     );
-END full_adder;
+end full_adder;
 
-ARCHITECTURE behavior OF full_adder IS
-BEGIN
+architecture dataflow of full_adder is
+begin
 
-    -- Sum equation
-    Sum  <= A XOR B XOR Cin;
+    -- Sum
+    S <= A xor B xor Cin;
 
-    -- Carry equation
-    Cout <= (A AND B) OR (Cin AND (A XOR B));
+    -- Carry
+    Cout <= (A and B) or (Cin and (A xor B));
 
-END behavior;
+end dataflow;
