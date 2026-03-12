@@ -1,0 +1,82 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity Counter_4bit is
+    Port ( clk   : in  STD_LOGIC;   -- 100MHz Input
+           reset : in  STD_LOGIC;   -- Reset Button
+           LED   : out STD_LOGIC_VECTOR (3 downto 0)); -- LED 4 ดวง
+end Counter_4bit;
+
+architecture Structural of Counter_4bit is
+
+    component JK_FF
+        Port ( J, K, CLK, RESET : in STD_LOGIC; 
+               Q, Q_bar : out STD_LOGIC);
+    end component;
+
+    component Clock_Divider
+        Port ( clk_in, reset : in STD_LOGIC; 
+               clk_out : out STD_LOGIC);
+    end component;
+
+    signal clk_1Hz : STD_LOGIC;
+    signal q_out   : STD_LOGIC_VECTOR (3 downto 0);
+    
+    -- สัญญาณสำหรับควบคุมขา J, K ของแต่ละบิต
+    signal j1_k1   : STD_LOGIC;
+    signal j2_k2   : STD_LOGIC;
+    signal j3_k3   : STD_LOGIC;
+
+begin
+
+    -- 1. Clock Divider (หารความถี่ให้เหลือ 1Hz เพื่อให้มองเห็นด้วยตาเปล่า)
+    Div: Clock_Divider port map (
+        clk_in  => clk,
+        reset   => reset,
+        clk_out => clk_1Hz
+    );
+
+    -- 2. Logic Equations สำหรับ Synchronous Counter
+    -- Bit 0: Toggle ตลอดเวลา (J=1, K=1)
+    -- Bit 1: Toggle เมื่อ Q0 = 1
+    j1_k1 <= q_out(0);
+    
+    -- Bit 2: Toggle เมื่อ Q0=1 AND Q1=1
+    j2_k2 <= q_out(0) and q_out(1);
+    
+    -- Bit 3 (MSB): Toggle เมื่อ Q0=1 AND Q1=1 AND Q2=1
+    j3_k3 <= q_out(0) and q_out(1) and q_out(2);
+
+    -------------------------------------------------------
+    -- Bit 0 (LSB)
+    FF0: JK_FF port map (
+        J => '1', K => '1',
+        CLK => clk_1Hz, RESET => reset,
+        Q => q_out(0), Q_bar => open
+    );
+
+    -- Bit 1
+    FF1: JK_FF port map (
+        J => j1_k1, K => j1_k1,
+        CLK => clk_1Hz, RESET => reset,
+        Q => q_out(1), Q_bar => open
+    );
+
+    -- Bit 2
+    FF2: JK_FF port map (
+        J => j2_k2, K => j2_k2,
+        CLK => clk_1Hz, RESET => reset,
+        Q => q_out(2), Q_bar => open
+    );
+
+    -- Bit 3 (MSB)
+    FF3: JK_FF port map (
+        J => j3_k3, K => j3_k3,
+        CLK => clk_1Hz, RESET => reset,
+        Q => q_out(3), Q_bar => open
+    );
+
+    -- 3. Mapping ออก LED (4 บิต)
+    LED <= q_out;
+
+end Structural;
