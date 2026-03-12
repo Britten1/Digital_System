@@ -1,0 +1,50 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity Checkpoint2_Top is
+    Port ( clk   : in  STD_LOGIC;
+           reset : in  STD_LOGIC;
+           seg   : out STD_LOGIC_VECTOR (6 downto 0); -- ต่อเข้า a-g ของ 7-segment
+           an    : out STD_LOGIC_VECTOR (3 downto 0); -- ต่อเข้า Digit selection
+           LED_out : out STD_LOGIC_VECTOR (3 downto 0)); -- (Optional) ดูค่าเลขฐานสองบน LED ด้วย
+end Checkpoint2_Top;
+
+architecture Structural of Checkpoint2_Top is
+
+    -- 1. แก้ไข Component Counter ให้เป็น 4-bit
+    component Counter_4bit
+        Port ( clk   : in  STD_LOGIC;
+               reset : in  STD_LOGIC;
+               LED   : out STD_LOGIC_VECTOR (3 downto 0));
+    end component;
+
+    -- 2. แก้ไข Component Decoder ให้รับ Input 4-bit (0-15 หรือ 0-F)
+    component sseg_decoder
+        Port ( bin : in  STD_LOGIC_VECTOR (3 downto 0);
+               seg : out STD_LOGIC_VECTOR (6 downto 0);
+               an  : out STD_LOGIC_VECTOR (3 downto 0));
+    end component;
+
+    -- ขยายสายไฟ (Wire) เป็น 4-bit
+    signal count_val : STD_LOGIC_VECTOR (3 downto 0);
+
+begin
+
+    -- 3. เรียกใช้งาน Counter 4-bit
+    U1_Counter: Counter_4bit port map (
+        clk   => clk,
+        reset => reset,
+        LED   => count_val  -- ส่งค่า 4-bit ออกมาที่สายไฟ count_val
+    );
+
+    -- 4. เรียกใช้งาน Decoder 4-bit (เพื่อแสดงผล 0-9, A-F)
+    U2_Decoder: sseg_decoder port map (
+        bin => count_val,   -- รับค่า 4-bit จากสายไฟ
+        seg => seg,
+        an  => an
+    );
+    
+    -- ส่งค่าออก LED บนบอร์ดเพื่อ Check สถานะ (ถ้าต้องการ)
+    LED_out <= count_val;
+
+end Structural;
